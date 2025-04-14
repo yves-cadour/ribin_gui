@@ -1,11 +1,13 @@
 import streamlit as st
 from ribin_gui.config.state import init_state
+from ribin_gui.config.config_page import config_page
 from ribin_gui.components.sidebar import sidebar
 from ribin_gui.views import import_view, groups_view, menus_view
 
 
 def main():
     init_state()
+    config_page()
     sidebar()
 
     if st.session_state.etape == 1:
