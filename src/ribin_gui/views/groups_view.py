@@ -30,5 +30,6 @@ def _display_etapes_groupes():
                             cols[0].write(f"Groupe {groupe.label}: {len(groupe.eleves)} élèves")
                             if groupe.number != 1 and cols[1].button("➖", key=f"del_{groupe.id}"):
                                 st.session_state.moulinette.delete_groupe(groupe.id)
+                                st.rerun()
                     else:
                         st.warning("Aucun groupe créé")
