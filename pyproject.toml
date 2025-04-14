@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ribin_gui"
+version = "0.1.0"
+description = "Interface Streamlit pour le configurateur de menus Ribin"
+authors = [
+    { name = "Yves Cadour", email = "yves.cadour@saint-louis29.net" },
+]
+readme = "README.rst"
+requires-python = ">=3.8"
+license = "GPL-3.0-or-later"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "ribin>=0.1.0",  # Votre package principal
+    "streamlit>=1.22.0",
+    "pandas>=1.0.0",  # Si utilisé dans la GUI
+    "plotly-express>=0.4.0"  # Optionnel pour les visualisations
+]
+
+[project.urls]
+Homepage = "https://github.com/saintlouis29/ribin_gui"
+Repository = "https://github.com/saintlouis29/ribin_gui"
+Documentation = "https://github.com/saintlouis29/ribin_gui#readme"
+
+[tool.setuptools]
+packages = ["ribin_gui"]
+package-dir = { "" = "src" }
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+    "isort",
+    "mypy",
+    "jupyterlab"  # Optionnel pour le développement
+]
+
+test = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "pytest-mock>=3.0",
+    "pytest-xdist",  # Pour les tests parallèles
+#    "streamlit-testing"  # Pour tester l'interface Streamlit
+]
+
+doc = [
+    "mkdocs>=1.4.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0"
+]
+
+[project.scripts]
+ribin-gui = "ribin_gui.main:run_app"  # Point d'entrée pour l'application
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=ribin_gui",
+    "--cov-report=term-missing",
+    "--import-mode=importlib",
+    "-v",
+    "-n auto"  # Tests parallèles
+]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+known_first_party = ["ribin_gui"]
