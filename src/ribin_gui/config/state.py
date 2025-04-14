@@ -10,6 +10,8 @@ def init_state():
         st.session_state.moulinette = None
     if 'last_upload' not in st.session_state:
         st.session_state.last_upload = None
+    if 'seuil_effectif' not in st.session_state:
+        st.session_state.seuil_effectif = 25
 
 def handle_upload(uploaded_file):
     """Gère un nouvel upload de fichier"""
