@@ -1,38 +1,22 @@
-
 import streamlit as st
+import pandas as pd
+from ribin.moulinette import Moulinette
 
-# Initialisation de l'état
 def init_state():
+    """Initialise tous les états nécessaires"""
     if 'etape' not in st.session_state:
-        st.session_state.etape = 1  # 1=Import, 2=Groupes, 3=Menus
+        st.session_state.etape = 1
     if 'moulinette' not in st.session_state:
         st.session_state.moulinette = None
+    if 'last_upload' not in st.session_state:
+        st.session_state.last_upload = None
 
-
-def reset_application_state():
-    """Réinitialise complètement l'état de l'application"""
-    st.session_state.moulinette = None
-    st.session_state.menus = None
-    st.session_state.current_menu_index = 0
-    st.session_state.etape = 1  # Retour à l'étape 1
-
-def reset_menus(origine = ""):
-    debug = True
-    if debug:
-        print(f"reset_menus from {origine}")
-    if 'menus' in st.session_state:
-        if debug:
-            print("RESET MENUS")
-        st.session_state.menus = None
-        #st.rerun()
-    else:
-        if debug:
-            print("'menus' not in st.session_state")
-
-def handle_upload_complete():
-    """Gère la complétion d'un upload de manière atomique"""
-    if st.session_state.get('upload_in_progress', False):
-        st.session_state.upload_in_progress = False
-        st.session_state.file_just_uploaded = True
-    else:
-        st.session_state.file_just_uploaded = False
+def handle_upload(uploaded_file):
+    """Gère un nouvel upload de fichier"""
+    if uploaded_file and st.session_state.last_upload != uploaded_file.name:
+        st.session_state.moulinette = Moulinette()
+        df = pd.read_csv(uploaded_file)
+        st.session_state.moulinette.read_datas(df)
+        st.session_state.last_upload = uploaded_file.name
+        return True
+    return False

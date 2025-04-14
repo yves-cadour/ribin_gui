@@ -7,41 +7,16 @@ def render():
 
 # Étape 3 - Génération des menus
 def _display_menus():
-
     moulinette = st.session_state.moulinette
 
     if not moulinette:
         st.warning("Complétez les étapes précédentes")
         return
-
     if 'menus' not in st.session_state:
         st.session_state.menus = None
     if 'current_menu_index' not in st.session_state:
         st.session_state.current_menu_index = 0
 
-    if st.session_state.menus:
-        menus = st.session_state.menus
-        total_menus = len(menus)
-        menu_index = st.session_state.current_menu_index
-
-        # Conteneur de navigation
-        nav_container = st.container()
-        with nav_container:
-            cols_nav = st.columns([1, 2, 1])
-            with cols_nav[0]:
-                if st.button("← Précédent",
-                           disabled=menu_index == 0,
-                           type="primary"):
-                    st.session_state.current_menu_index -= 1
-                    st.rerun()
-            with cols_nav[1]:
-                st.subheader(f"Menu {menu_index + 1}/{total_menus}")
-            with cols_nav[2]:
-                if st.button("Suivant →",
-                           disabled=menu_index >= total_menus - 1,
-                           type="primary"):
-                    st.session_state.current_menu_index += 1
-                    st.rerun()
 
         # Affichage des barrettes
         current_menu = menus[menu_index]
