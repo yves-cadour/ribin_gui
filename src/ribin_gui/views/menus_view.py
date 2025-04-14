@@ -3,15 +3,7 @@ import pandas as pd  # N'oubliez pas d'importer pandas
 
 def render():
     st.title("Génération des menus")
-    _display_menus()
-
-def _display_menus():
     moulinette = st.session_state.moulinette
-
-    if not moulinette:
-        st.warning("Complétez les étapes précédentes")
-        return
-
     # Initialisation des variables de session
     if 'menus' not in st.session_state:
         st.session_state.menus = None

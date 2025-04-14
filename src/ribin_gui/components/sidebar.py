@@ -48,6 +48,22 @@ def display_groups():
 def display_menus():
     """Affiche la gestion des menus"""
     st.header("3. Menus")
+    nb_barrettes = st.slider("Nombre de barrettes",
+                            min_value=2,
+                            max_value=5,
+                            value=st.session_state.moulinette.nb_barrettes,
+                            key="nb_barrettes_slider")
+    if st.button("🎯 Générer les menus", type="primary", key="generate_menus"):
+       with st.spinner("Génération en cours..."):
+            # Mise à jour du nombre de barrettes
+            st.session_state.moulinette.nb_barrettes = nb_barrettes
+
+            # Génération des menus
+            st.session_state.menus = st.session_state.moulinette.menus_tries_par_conflits_et_filtres(
+                max_par_conflit_certain=5
+            )
+            st.session_state.current_menu_index = 0
+            st.success("Menus générés avec succès!")
 
 
 
