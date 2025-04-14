@@ -7,6 +7,7 @@ def display_upload():
     uploaded_file = st.file_uploader("Importer CSV", type=["csv"])
     if uploaded_file and handle_upload(uploaded_file):
         st.success("Fichier importé !")
+        st.rerun()
 
 def display_navigation():
     """Affiche les boutons de navigation"""
