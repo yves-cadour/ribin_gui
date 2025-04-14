@@ -2,6 +2,9 @@
 
 import streamlit as st
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
 from ribin.moulinette import Moulinette
 from ribin_gui.utils import calculer_separateurs
 
@@ -42,6 +45,9 @@ def reset_menus(origine = ""):
     else:
         if debug:
             print("'menus' not in st.session_state")
+
+# Affichage en vrac
+
 
 # Étape 1 - Import des données
 def etape_import():
@@ -85,15 +91,82 @@ def etape_import():
 
         with tab2:
             st.subheader("Statistiques")
-            df_effectifs = pd.DataFrame({
-                "Spécialité": [f"{s.icon}{s.label}" for s in st.session_state.moulinette.specialites],
-                "Effectif": [len(s.default_groupe.eleves) for s in st.session_state.moulinette.specialites]
-            })
-            st.bar_chart(df_effectifs.set_index("Spécialité"))
+            specialites = st.session_state.moulinette.specialites
+            col1, col2 = st.columns(2)
+            with col1:
+                # Création d'un DataFrame
+                df = pd.DataFrame({
+                    'Spécialité': [f"{s.icon} {s.label}" for s in specialites],
+                    'Effectif': [len(s.default_groupe.eleves) for s in specialites]
+                })
+                df = df.sort_values('Effectif', ascending=False)
+
+               # Création du graphique
+                fig = px.bar(
+                    df,
+                    x='Spécialité',
+                    y='Effectif',
+                    title="Effectifs par spécialité",
+                    text='Effectif',
+                )
+
+                # Personnalisation
+                fig.update_traces(textposition='outside')
+                fig.update_layout(showlegend=False)
+                # Affichage dans Streamlit
+                st.plotly_chart(fig, use_container_width=True)
+            with col2:
+                # TOP 5 des combinaisons de spécialités
+                combinaisons = st.session_state.moulinette.get_eleves_par_combinaison_specialites()
+
+                # Préparation des données
+                data = []
+                for spes, eleves in combinaisons.items():
+                    label = "+".join(sorted([s.label for s in spes]))  # Crée un label comme "MATHS+PHYSIQUE"
+                    data.append({
+                        'Combinaison': label,
+                        'Effectif': len(eleves),
+                        'Spécialités': list(spes)  # Garde les objets pour les icônes
+                    })
+                # Tri par effectif
+                data.sort(key=lambda x: x['Effectif'], reverse=True)
+                limite = 7
+                principaux = data[:limite]
+                autres = {'Combinaison':'Autre', 'Effectif': sum([d['Effectif'] for d in data[limite:]]), 'Spécialités': []}
+                data = principaux + [autres]
+                # Création du DataFrame et tri
+                df_combinaisons = pd.DataFrame(data).sort_values('Effectif', ascending=False)
+
+                if not df_combinaisons.empty:
+                    # Création du pie chart
+                    fig = px.pie(
+                        df_combinaisons,
+                        names='Combinaison',
+                        values='Effectif',
+                        title='Top 5 des combinaisons de spécialités',
+                        hover_data=['Effectif'],
+                        # Utilisation des icônes des spécialités dans les labels
+                        labels={'Combinaison': 'Combinaison', 'Effectif': 'Nombre d\'élèves'}
+                    )
+
+                    # Personnalisation
+                    fig.update_traces(
+                        textposition='inside',
+                        textinfo='percent+label',
+                        hovertemplate="<b>%{label}</b><br>%{value} élèves (%{percent})"
+                    )
+
+                    fig.update_layout(
+                        showlegend=False,
+                        margin=dict(t=50, b=10, l=10, r=10)
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Aucune donnée de combinaison disponible")
 
 
-            #df_wide.set_index('Spécialité').plot.bar(stacked=True, figsize=(10, 6))
-            #st.bar_chart(df_wide.set_index("Spécialité"))
+
     else:
         st.info("Veuillez importer un fichier CSV depuis la sidebar")
 
@@ -186,41 +259,24 @@ def etape_menus():
         # Affichage des conflits
         certains, potentiels = current_menu.conflicts(moulinette)
         st.subheader("Conflits par concomitance")
-        col1, col2 = st.columns(2)
-
-        with col1:
-            with st.expander(f"Élèves certainement insatisfaits ({len(certains)})", expanded=True):
-                if certains:
-                    st.dataframe(pd.DataFrame(
-                        [(f"{e.nom} {e.prenom}", ", ".join(s.label for s in moulinette.get_specialites_for_eleve(e)))
-                         for e in certains],
-                        columns=["Élève", "Spécialités"]
-                    ), hide_index=True)
-                    for eleve in certains:
-                        conflits_eleve = st.session_state.moulinette.get_conflicts_for_eleve_in_menu(eleve, st.session_state.menus[0])
-                        for barrette, groupes in conflits_eleve:
-                            st.markdown(f"**Conflits dans la barrette {barrette.label}**")
-                            for groupe in groupes:
-                                st.markdown(f"- {groupe.specialite.label} ({groupe.label})")
-                else:
-                    st.info("Aucun conflit certain")
-
-        with col2:
-            with st.expander(f"Élèves potentiellement satisfaisables ({len(potentiels)})", expanded=True):
-                if potentiels:
-                    st.dataframe(pd.DataFrame(
-                        [(f"{e.nom} {e.prenom}", ", ".join(s.label for s in moulinette.get_specialites_for_eleve(e)))
-                         for e in potentiels],
-                        columns=["Élève", "Spécialités"]
-                    ), hide_index=True)
-                    for eleve in potentiels:
-                        conflits_eleve = st.session_state.moulinette.get_conflicts_for_eleve_in_menu(eleve, st.session_state.menus[0])
-                        for barrette, groupes in conflits_eleve:
-                            st.markdown(f"**Conflits dans la barrette {barrette.label}**")
-                            for groupe in groupes:
-                                st.markdown(f"- {groupe.specialite.label} ({groupe.label})")
-                else:
-                    st.info("Aucun conflit potentiel")
+        cols = st.columns(len((certains, potentiels)), gap="small")
+        for i, (col, eleves) in enumerate(zip(cols, (certains, potentiels))):
+            with col:
+                with st.expander(f"Conflits {"certains" if i==0 else "potentiels" } ({len(eleves)} élèves)", expanded=True):
+                    if eleves:
+                        st.dataframe(pd.DataFrame(
+                            [(f"{e.nom} {e.prenom}", ", ".join(s.label for s in moulinette.get_specialites_for_eleve(e)))
+                            for e in sorted(eleves, key=lambda x: moulinette.get_specialites_for_eleve(x))],
+                            columns=["Élève", "Spécialités"]
+                        ), hide_index=True)
+                        # for eleve in certains:
+                        #     conflits_eleve = st.session_state.moulinette.get_conflicts_for_eleve_in_menu(eleve, st.session_state.menus[0])
+                        #     for barrette, groupes in conflits_eleve:
+                        #         st.markdown(f"**Conflits dans la barrette {barrette.label}**")
+                        #         for groupe in groupes:
+                        #             st.markdown(f"- {groupe.specialite.label} ({groupe.label})")
+                    else:
+                        st.info("Aucun conflit")
 
     elif 'menus' in st.session_state and st.session_state.menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")
@@ -271,7 +327,8 @@ def sidebar_navigation():
 
             if st.button("🎯 Générer les menus", type="primary"):
                 with st.spinner("Génération en cours..."):
-                    st.session_state.menus = st.session_state.moulinette.menus_tries_par_conflits()
+                    st.session_state.menus = st.session_state.moulinette.menus_tries_par_conflits_et_filtres(max_par_conflit_certain=5)
+#                    st.session_state.menus = st.session_state.moulinette.menus_tries_par_conflits()
                     st.session_state.current_menu_index = 0
                     st.rerun()
 
