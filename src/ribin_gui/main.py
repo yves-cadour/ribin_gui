@@ -3,8 +3,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-import numpy as np
 from ribin.moulinette import Moulinette
 from ribin_gui.utils import calculer_separateurs
 
@@ -116,54 +114,42 @@ def etape_import():
                 # Affichage dans Streamlit
                 st.plotly_chart(fig, use_container_width=True)
             with col2:
-                # TOP 5 des combinaisons de spécialités
                 combinaisons = st.session_state.moulinette.get_eleves_par_combinaison_specialites()
 
                 # Préparation des données
                 data = []
                 for spes, eleves in combinaisons.items():
-                    label = "+".join(sorted([s.label for s in spes]))  # Crée un label comme "MATHS+PHYSIQUE"
-                    data.append({
-                        'Combinaison': label,
-                        'Effectif': len(eleves),
-                        'Spécialités': list(spes)  # Garde les objets pour les icônes
-                    })
-                # Tri par effectif
-                data.sort(key=lambda x: x['Effectif'], reverse=True)
-                limite = 7
-                principaux = data[:limite]
-                autres = {'Combinaison':'Autre', 'Effectif': sum([d['Effectif'] for d in data[limite:]]), 'Spécialités': []}
-                data = principaux + [autres]
-                # Création du DataFrame et tri
-                df_combinaisons = pd.DataFrame(data).sort_values('Effectif', ascending=False)
+                    label = " + ".join([f"{s.label}" for s in sorted(spes, key=lambda x: x.label)])
+                    data.append({'Combinaison': label, 'Effectif': len(eleves)})
 
-                if not df_combinaisons.empty:
-                    # Création du pie chart
-                    fig = px.pie(
-                        df_combinaisons,
-                        names='Combinaison',
-                        values='Effectif',
-                        title='Top 5 des combinaisons de spécialités',
-                        hover_data=['Effectif'],
-                        # Utilisation des icônes des spécialités dans les labels
-                        labels={'Combinaison': 'Combinaison', 'Effectif': 'Nombre d\'élèves'}
-                    )
+                df = pd.DataFrame(data).sort_values('Effectif', ascending=False)
 
-                    # Personnalisation
-                    fig.update_traces(
-                        textposition='inside',
-                        textinfo='percent+label',
-                        hovertemplate="<b>%{label}</b><br>%{value} élèves (%{percent})"
-                    )
+                # Pagination
+                items_per_page = 5
+                page = st.number_input('Page', min_value=1, max_value=len(df)//items_per_page+1, value=1)
 
-                    fig.update_layout(
-                        showlegend=False,
-                        margin=dict(t=50, b=10, l=10, r=10)
-                    )
+                start_idx = (page-1)*items_per_page
+                end_idx = start_idx + items_per_page
+                df_page = df.iloc[start_idx:end_idx]
 
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.info("Aucune donnée de combinaison disponible")
+                # Graphique
+                fig = px.bar(
+                    df_page,
+                    y='Effectif',
+                    x='Combinaison',
+                    title=f"Combinaisons de spécialités par popularité {start_idx+1}-{min(end_idx,len(df))}/{len(df)}",
+                    text='Effectif',
+                )
+
+                fig.update_layout(
+                    yaxis={'categoryorder':'total ascending'},
+                    height=400,
+                    xaxis_title="Combinaison de spécialités",
+                    yaxis_title="Nombre d'élèves"
+                )
+
+                #fig.update_traces(textposition='outside')
+                st.plotly_chart(fig, use_container_width=True)
 
 
 
