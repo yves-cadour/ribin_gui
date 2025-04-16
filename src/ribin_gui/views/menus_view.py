@@ -1,25 +1,26 @@
 import streamlit as st
-import pandas as pd  # N'oubliez pas d'importer pandas
+import pandas as pd
 
 def render():
     st.title("Génération des menus")
-    moulinette = st.session_state.moulinette
-    # Initialisation des variables de session
-    # if 'menus' not in st.session_state:
-    #     st.session_state.menus = None
-    # if 'current_menu_index' not in st.session_state:
-    #     st.session_state.current_menu_index = 0
 
-    # Vérification si les menus existent
+    # Ajout des boutons de navigation entre menus
+    if st.session_state.get('menus'):
+        _display_menu_navigation()
+
+    moulinette = st.session_state.moulinette
+
     if st.session_state.menus:
-        menus = st.session_state.menus  # Récupère les menus depuis session_state
+        menus = st.session_state.menus
         menu_index = st.session_state.current_menu_index
+        current_menu = menus[menu_index]
+        print(f"menus_view.py > render() > moulinette.nb_barrettes : {moulinette.nb_barrettes}")
+        # Affichage du numéro du menu actuel
+        st.subheader(f"Menu {menu_index + 1}/{len(menus)}")
 
         # Affichage des barrettes
-        current_menu = menus[menu_index]
         barrettes = current_menu.barrettes
-
-        # Créer des colonnes pour afficher les barrettes
+        print(f"menus_view.py > render() > len(current_menu.barrettes) : {len(current_menu.barrettes)}")
         cols = st.columns(len(barrettes), gap="small")
 
         for i, (col, barrette) in enumerate(zip(cols, barrettes)):
@@ -36,7 +37,7 @@ def render():
         # Affichage des conflits
         certains, potentiels = current_menu.conflicts(moulinette)
         st.subheader("Conflits par concomitance")
-        cols = st.columns(2, gap="small")  # Correction: 2 colonnes pour certains/potentiels
+        cols = st.columns(2, gap="small")
 
         for i, (col, eleves) in enumerate(zip(cols, (certains, potentiels))):
             with col:
@@ -53,3 +54,25 @@ def render():
 
     elif st.session_state.menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")
+
+def _display_menu_navigation():
+    """Affiche les boutons de navigation entre menus"""
+    menu_index = st.session_state.current_menu_index
+    total_menus = len(st.session_state.menus)
+
+    col1, col2, col3 = st.columns([1, 3, 1])
+
+    # Bouton Précédent
+    if col1.button("◀ Précédent", disabled=(menu_index <= 0)):
+        if menu_index > 0:
+            st.session_state.current_menu_index -= 1
+            st.rerun()
+
+    # Indicateur de position
+    col2.markdown(f"**Menu {menu_index + 1} / {total_menus}**", unsafe_allow_html=True)
+
+    # Bouton Suivant
+    if col3.button("Suivant ▶", disabled=(menu_index >= total_menus - 1)):
+        if menu_index < total_menus - 1:
+            st.session_state.current_menu_index += 1
+            st.rerun()

@@ -33,8 +33,8 @@ def _display_etapes_groupes():
                             cols = st.columns([4, 1])
                             # Style conditionnel pour la ligne du groupe
                             effectif = len(groupe.eleves)
-                            if effectif > seuil:
-                                cols[0].markdown(f"**🚩 Groupe {groupe.label}: {effectif} élèves**")
+                            if effectif >= seuil:
+                                cols[0].markdown(f"**🚩🚩 Groupe {groupe.label}: {effectif} élèves 🚩🚩**")
                             else:
                                 cols[0].write(f"Groupe {groupe.label}: {effectif} élèves")
                             if groupe.number != 1 and cols[1].button("➖", key=f"del_{groupe.id}"):
