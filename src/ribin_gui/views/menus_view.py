@@ -5,10 +5,10 @@ def render():
     st.title("Génération des menus")
     moulinette = st.session_state.moulinette
     # Initialisation des variables de session
-    if 'menus' not in st.session_state:
-        st.session_state.menus = None
-    if 'current_menu_index' not in st.session_state:
-        st.session_state.current_menu_index = 0
+    # if 'menus' not in st.session_state:
+    #     st.session_state.menus = None
+    # if 'current_menu_index' not in st.session_state:
+    #     st.session_state.current_menu_index = 0
 
     # Vérification si les menus existent
     if st.session_state.menus:
