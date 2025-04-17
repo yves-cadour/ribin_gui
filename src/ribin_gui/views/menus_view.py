@@ -1,12 +1,35 @@
 import streamlit as st
 import pandas as pd
+from ..components import sidebar
+from ..controllers.menus_controller import generate_menus
 
+def display_menu_navigation():
+    """Affiche les boutons de navigation entre menus"""
+    menu_index = st.session_state.current_menu_index
+    total_menus = len(st.session_state.menus)
+
+    col1, col2, col3 = st.columns([1, 3, 1])
+
+    # Bouton Précédent
+    if col1.button("◀ Précédent", disabled=(menu_index <= 0)):
+        if menu_index > 0:
+            st.session_state.current_menu_index -= 1
+            st.rerun()
+
+    # Indicateur de position
+    col2.markdown(f"**Menu {menu_index + 1} / {total_menus}**", unsafe_allow_html=True)
+
+    # Bouton Suivant
+    if col3.button("Suivant ▶", disabled=(menu_index >= total_menus - 1)):
+        if menu_index < total_menus - 1:
+            st.session_state.current_menu_index += 1
+            st.rerun()
 def render():
     st.title("Génération des menus")
 
     # Ajout des boutons de navigation entre menus
     if st.session_state.get('menus'):
-        _display_menu_navigation()
+        display_menu_navigation()
 
     moulinette = st.session_state.moulinette
 
@@ -55,24 +78,3 @@ def render():
     elif st.session_state.menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")
 
-def _display_menu_navigation():
-    """Affiche les boutons de navigation entre menus"""
-    menu_index = st.session_state.current_menu_index
-    total_menus = len(st.session_state.menus)
-
-    col1, col2, col3 = st.columns([1, 3, 1])
-
-    # Bouton Précédent
-    if col1.button("◀ Précédent", disabled=(menu_index <= 0)):
-        if menu_index > 0:
-            st.session_state.current_menu_index -= 1
-            st.rerun()
-
-    # Indicateur de position
-    col2.markdown(f"**Menu {menu_index + 1} / {total_menus}**", unsafe_allow_html=True)
-
-    # Bouton Suivant
-    if col3.button("Suivant ▶", disabled=(menu_index >= total_menus - 1)):
-        if menu_index < total_menus - 1:
-            st.session_state.current_menu_index += 1
-            st.rerun()
