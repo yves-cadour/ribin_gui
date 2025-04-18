@@ -74,7 +74,6 @@ def render():
                                     for e in sorted(eleves, key=moulinette.get_specialites_for_eleve)],
                                     columns=["Élève", "Spécialités", "Groupes"]
                                 ), hide_index=True)
-                    st.badge("Success", icon=":material/palette:", color="green")
                 else:
                     st.info("Aucun conflit")
 
