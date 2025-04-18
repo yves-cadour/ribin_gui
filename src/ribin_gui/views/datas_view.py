@@ -38,7 +38,7 @@ def _display_data_tab(tab):
 
         # Afficher le DataFrame avec style
         st.dataframe(
-            df.style.applymap(
+            df.style.map(
                 lambda x: 'color: green; font-weight: bold' if x == '✓' else '',
                 subset=[s.label for s in st.session_state.moulinette.specialites]
             ),
