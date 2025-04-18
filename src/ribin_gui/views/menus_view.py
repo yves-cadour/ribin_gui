@@ -1,7 +1,8 @@
+"""Une vue pour les menus"""
+
+
 import streamlit as st
 import pandas as pd
-from ..components import sidebar
-from ..controllers.menus_controller import generate_menus
 
 def display_menu_navigation():
     """Affiche les boutons de navigation entre menus"""
@@ -37,13 +38,11 @@ def render():
         menus = st.session_state.menus
         menu_index = st.session_state.current_menu_index
         current_menu = menus[menu_index]
-        print(f"menus_view.py > render() > moulinette.nb_barrettes : {moulinette.nb_barrettes}")
         # Affichage du numéro du menu actuel
         st.subheader(f"Menu {menu_index + 1}/{len(menus)}")
 
         # Affichage des barrettes
         barrettes = current_menu.barrettes
-        print(f"menus_view.py > render() > len(current_menu.barrettes) : {len(current_menu.barrettes)}")
         cols = st.columns(len(barrettes), gap="small")
 
         for i, (col, barrette) in enumerate(zip(cols, barrettes)):
@@ -52,28 +51,32 @@ def render():
                 for groupe in barrette.groupes:
                     spe = groupe.specialite
                     st.markdown(f"""
-                    <div style="border-top:1px solid #ccc;padding:5px 0">
+                    <div>
                         <b>{spe.icon} {groupe.label}</b><small>&nbsp;{len(groupe.eleves)} élèves</small>
                     </div>
                     """, unsafe_allow_html=True)
 
         # Affichage des conflits
-        certains, potentiels = current_menu.conflicts(moulinette)
+        insolubles, potentiels = current_menu.conflicts(moulinette)
         st.subheader("Conflits par concomitance")
         cols = st.columns(2, gap="small")
-
-        for i, (col, eleves) in enumerate(zip(cols, (certains, potentiels))):
+        for i, (col, set_groupes_eleves) in enumerate(zip(cols, (insolubles, potentiels))):
             with col:
-                type_conflit = "certains" if i == 0 else "potentiels"
-                with st.expander(f"Conflits {type_conflit} ({len(eleves)} élèves)", expanded=True):
-                    if eleves:
-                        st.dataframe(pd.DataFrame(
-                            [(f"{e.nom} {e.prenom}", ", ".join(s.label for s in moulinette.get_specialites_for_eleve(e)))
-                            for e in sorted(eleves, key=lambda x: moulinette.get_specialites_for_eleve(x))],
-                            columns=["Élève", "Spécialités"]
-                        ), hide_index=True)
-                    else:
-                        st.info("Aucun conflit")
+                type_conflit = "insolubles" if i == 0 else "potentiels"
+                st.subheader(f"Conflits {type_conflit}")
+                if set_groupes_eleves:
+                    for groupes, eleves in set_groupes_eleves.items():
+                        groupes_labels = [f"{g.specialite.icon} {g.label}" for g in groupes]
+                        with st.expander(f"Concomitance : {' ⚡ ⚡ ⚡ '.join(groupes_labels)}", expanded=True):
+                            if eleves:
+                                st.dataframe(pd.DataFrame(
+                                    [(f"{e.nom} {e.prenom}", ", ".join(s.label for s in moulinette.get_specialites_for_eleve(e)), ", ".join(g.label for g in moulinette.get_groupes_for_eleve(e)))
+                                    for e in sorted(eleves, key=moulinette.get_specialites_for_eleve)],
+                                    columns=["Élève", "Spécialités", "Groupes"]
+                                ), hide_index=True)
+                    st.badge("Success", icon=":material/palette:", color="green")
+                else:
+                    st.info("Aucun conflit")
 
     elif st.session_state.menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")

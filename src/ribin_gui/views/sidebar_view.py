@@ -1,43 +1,47 @@
-import streamlit as st
-from ..controllers.datas_controller import handle_upload
-from ..controllers.menus_controller import generate_menus
+"""La composante sideBar"""
 
-#from ribin_gui.config.state import handle_nb_specialites_par_eleve, generate_menus
+import streamlit as st
+from ..controllers import handle_upload
+from ..controllers import generate_menus
+from ..state import init_state
+
+init_state()
 
 def render():
     """Composition de la sidebar"""
     with st.sidebar:
         st.title("Navigation")
-        display_navigation()
-
+        sidebar_navigation()
         if st.session_state.etape == 1:
-            display_nb_specialites()
-            display_upload()
+            sidebar_nb_specialites()
+            sidebar_upload()
         elif st.session_state.etape == 2:
-            display_groups()
+            sidebar_groups()
         elif st.session_state.etape == 3:
-            display_menus()
+            sidebar_menus()
+        elif st.session_state.etape == 4:  # Nouvelle étape
+            side_conflict_resolution()
 
 # +------------------------------------------------------------------------+
 # |                       NAVIGATION                                       |
 # +------------------------------------------------------------------------+
 
-def display_navigation():
+def sidebar_navigation():
     """Affiche les boutons de navigation"""
     col1, col2 = st.columns(2)
     if st.session_state.etape > 1 and col1.button("← Retour"):
         st.session_state.etape -= 1
-    #print(f"st.session_state.etape : {st.session_state.etape}")
-    #print(f"st.session_state.moulinette : {st.session_state.moulinette}")
-    disabled = st.session_state.etape >= 3 or not st.session_state.moulinette
-    if col2.button("Suivant →", disabled=disabled):
-        st.session_state.etape += 1
+    if col2.button("Suivant →"):
+        if st.session_state.moulinette is None:
+            st.error("Veuillez d'abord uploader un fichier valide")
+        else:
+            st.session_state.etape += 1
 
 # +------------------------------------------------------------------------+
 # |               IMPORTATION DES DONNEES                                  |
 # +------------------------------------------------------------------------+
 
-def display_nb_specialites():
+def sidebar_nb_specialites():
     """
     Affiche le slider pour le choix du nombre de spécialités par élève.
     """
@@ -52,20 +56,22 @@ def display_nb_specialites():
             )
     st.info("3 spécialités en première, 2 en terminale.")
 
-def display_upload():
+def sidebar_upload():
     """Affiche le widget d'upload"""
     st.header("1. Données")
-    uploaded_file = st.file_uploader("Importer CSV", type=["csv"])
+    uploaded_file = st.file_uploader("Importer CSV",
+                                     type=["csv"],
+                                     key ="file_uploader")
     if uploaded_file:
         if handle_upload(uploaded_file):
-            st.success("Fichier importé !")
-        #st.rerun()
+            st.success("Fichier importé avec succès !")
+
 
 # +------------------------------------------------------------------------+
 # |                      GESTION DES GROUPES                               |
 # +------------------------------------------------------------------------+
 
-def display_groups():
+def sidebar_groups():
     """Affiche la gestion des groupes"""
     st.header("2. Groupes")
     st.session_state.seuil_effectif = st.slider(
@@ -81,14 +87,15 @@ def display_groups():
 # |                      GESTION DES MENUS                                 |
 # +------------------------------------------------------------------------+
 
-def display_menus():
+def sidebar_menus():
     """Affiche la gestion des menus"""
     moulinette = st.session_state.moulinette
     st.header("3. Menus")
     # Debug visible dans l'UI
     #st.caption(f"Valeur actuelle : {st.session_state.get('nb_barrettes')} | Moulinette : {moulinette.nb_barrettes if moulinette else 'N/A'}")
 
-    nb_barrettes = st.slider("Nombre de barrettes",
+    # nb_barrettes
+    st.slider("Nombre de barrettes",
                             min_value=2,
                             max_value=5,
                             value=moulinette.nb_barrettes,
@@ -97,27 +104,27 @@ def display_menus():
     st.info(f"{len(moulinette.specialites)} spécialites dans {moulinette.nb_barrettes} barrettes soit {moulinette.nombre_menus_possibles()} menus.")
     col1, col2 = st.columns(2)
     with col1:
-        max_conflits_certains = st.slider("Maximum de conflits certains",
-                                        min_value=1,
-                                        max_value=10,
-                                        value=moulinette.max_conflits_certains,
-                                        key="max_conflits_certains",
-                                        on_change=cb_update_max_conflits_certains)
+        # max_conflits_certains
+        st.slider("Maximum de conflits certains",
+                    min_value=1,
+                    max_value=10,
+                    value=moulinette.max_conflits_certains,
+                    key="max_conflits_certains",
+                    on_change=cb_update_max_conflits_certains)
     with col2:
-        max_conflits_potentiels_par_conflit_certain = st.slider("Maximum de conflits potentiels par conflit certain",
-                                        min_value=1,
-                                        max_value=10,
-                                        value=moulinette.max_conflits_potentiels_par_conflit_certain,
-                                        key="max_conflits_potentiels_par_conflit_certain",
-                                        on_change = cb_update_max_conflits_potentiels_par_conflit_certain)
+        # max_conflits_potentiels_par_conflit_certain
+        st.slider("Maximum de conflits potentiels par conflit certain",
+                    min_value=1,
+                    max_value=10,
+                    value=moulinette.max_conflits_potentiels_par_conflit_certain,
+                    key="max_conflits_potentiels_par_conflit_certain",
+                    on_change = cb_update_max_conflits_potentiels_par_conflit_certain)
     c = moulinette.max_conflits_certains
     p = moulinette.max_conflits_potentiels_par_conflit_certain
     st.info(f"Il y aura au maximum {c} x {p} = {c*p} meilleurs menus proposés.")
 
     if st.button("🎯 Générer les menus", type="primary", key="generate_menus"):
        with st.spinner("Génération en cours..."):
-            #print(f"st.session_state.nb_barrettes : {st.session_state.nb_barrettes}")
-            #print(f"st.session_state.moulinette.nb_barrettes : {st.session_state.moulinette.nb_barrettes}")
             if not st.session_state.nb_barrettes:
                 st.session_state.nb_barrettes = moulinette.nb_barrettes
 
@@ -126,6 +133,40 @@ def display_menus():
                 st.success("Menus générés avec succès!")
             except ValueError as e:
                 st.error(f"Erreur lors de la génération des menus : {e}")
+
+# +------------------------------------------------------------------------+
+# |                       RESOLUTION DES CONFLITS                          |
+# +------------------------------------------------------------------------+
+def side_conflict_resolution():
+    """Affiche les contrôles pour la résolution des conflits"""
+    st.header("4. Résolution des conflits")
+
+    if st.button("🔍 Analyser les conflits", key="analyze_conflicts"):
+        #st.session_state.current_resolver =
+        st.rerun()
+
+    if 'current_resolver' in st.session_state:
+        st.subheader("Actions recommandées")
+        steps = st.session_state.current_resolver.get_resolution_steps()
+
+        for step in steps[:3]:  # Affiche les 3 meilleures suggestions
+            if step['type'] == 'move_group':
+                with st.expander(f"📦 Déplacer groupe {step['group'].label}"):
+                    st.write(f"Vers barrette: {step['targets'][0]['barrette'].label}")
+                    st.write(f"Résoudrait {step['potential_impact']} conflits")
+                    if st.button("Appliquer", key=f"move_group_{step['group'].id}"):
+                        apply_group_move(step['group'], step['targets'][0]['barrette'])
+
+            elif step['type'] == 'move_students':
+                with st.expander(f"👥 Rééquilibrer {len(step['students'])} élèves"):
+                    st.write(f"Conflit: {', '.join(g.label for g in step['conflict'])}")
+                    st.dataframe(pd.DataFrame(
+                        [(s.nom, s.prenom) for s in step['students']],
+                        columns=["Nom", "Prénom"]
+                    ))
+                    if st.button("Afficher solutions", key=f"show_solutions_{hash(step['conflict'])}"):
+                        st.session_state.current_student_moves = step
+                        st.rerun()
 
 # +------------------------------------------------------------------------+
 # |                       CALLBACKS                                        |
