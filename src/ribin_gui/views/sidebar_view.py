@@ -1,11 +1,10 @@
-"""La composante sideBar"""
+"""La vue de la barre latérale"""
 
 import streamlit as st
 from ..controllers import handle_upload
 from ..controllers import generate_menus
-from ..state import init_state
+from ..state import init_state # sinon des st.session sont irrésolues. Bug?
 
-init_state()
 
 def render():
     """Composition de la sidebar"""
@@ -31,11 +30,13 @@ def sidebar_navigation():
     col1, col2 = st.columns(2)
     if st.session_state.etape > 1 and col1.button("← Retour"):
         st.session_state.etape -= 1
+        st.rerun()
     if col2.button("Suivant →"):
         if st.session_state.moulinette is None:
             st.error("Veuillez d'abord uploader un fichier valide")
         else:
             st.session_state.etape += 1
+            st.rerun()
 
 # +------------------------------------------------------------------------+
 # |               IMPORTATION DES DONNEES                                  |
