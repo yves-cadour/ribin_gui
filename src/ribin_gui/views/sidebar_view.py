@@ -36,9 +36,12 @@ def sidebar_navigation():
                                  type='primary'):
         MainController.decrementer_etape()
         st.rerun()
+    print(f"moulinette={moulinette}")
+    disabled = moulinette is None
     if etape < nb_etapes and col2.button("Suivant →",
                    key="next",
-                   type='primary',):
+                   type='primary',
+                   disabled=disabled):
         if moulinette is None:
             st.error("Veuillez d'abord uploader un fichier valide.")
         else:
@@ -71,9 +74,11 @@ def sidebar_upload():
     uploaded_file = st.file_uploader("Importer CSV",
                                      type=["csv"],
                                      key ="file_uploader")
-    if uploaded_file:
-        if SidebarController.handle_upload(uploaded_file):
+    if uploaded_file and uploaded_file.getvalue() != SidebarController.get_uploaded_file():
+        if SidebarController.update_uploaded_file(uploaded_file, uploaded_file.getvalue()):
+            print('changement')
             st.success("Fichier importé avec succès !")
+            st.rerun() #sinon, pas de bouton suivant :-(
 
 
 # +------------------------------------------------------------------------+
@@ -156,38 +161,3 @@ def sidebar_menus():
         with st.spinner("Génération en cours..."):
             MainController.generer_menus()
             st.success(f"{len(MainController.get_menus())} meilleurs menus générés avec succès!")
-
-# +------------------------------------------------------------------------+
-# |                       RESOLUTION DES CONFLITS                          |
-# +------------------------------------------------------------------------+
-# def side_conflict_resolution():
-#     """Affiche les contrôles pour la résolution des conflits"""
-#     st.header("4. Résolution des conflits")
-
-#     if st.button("🔍 Analyser les conflits", key="analyze_conflicts"):
-#         #st.session_state.current_resolver =
-#         #st.rerun()
-#         pass
-
-#     if 'current_resolver' in st.session_state:
-#         st.subheader("Actions recommandées")
-#         steps = st.session_state.current_resolver.get_resolution_steps()
-
-#         for step in steps[:3]:  # Affiche les 3 meilleures suggestions
-#             if step['type'] == 'move_group':
-#                 with st.expander(f"📦 Déplacer groupe {step['group'].label}"):
-#                     st.write(f"Vers barrette: {step['targets'][0]['barrette'].label}")
-#                     st.write(f"Résoudrait {step['potential_impact']} conflits")
-#                     if st.button("Appliquer", key=f"move_group_{step['group'].id}"):
-#                         apply_group_move(step['group'], step['targets'][0]['barrette'])
-
-#             elif step['type'] == 'move_students':
-#                 with st.expander(f"👥 Rééquilibrer {len(step['students'])} élèves"):
-#                     st.write(f"Conflit: {', '.join(g.label for g in step['conflict'])}")
-#                     st.dataframe(pd.DataFrame(
-#                         [(s.nom, s.prenom) for s in step['students']],
-#                         columns=["Nom", "Prénom"]
-#                     ))
-#                     if st.button("Afficher solutions", key=f"show_solutions_{hash(step['conflict'])}"):
-#                         st.session_state.current_student_moves = step
-#                         #st.rerun()

@@ -33,36 +33,42 @@ class SidebarController:
         return False
 
     @staticmethod
-    def handle_upload(uploaded_file)->bool:
-        """Creer la moulinette depuis les données importées
-
-        :param uploaded_file: le fichier csv
-        :type uploaded_file:?
-        :raises ValueError: si 'moulinette' ou 'nb_specialites' absent de la session.
-        :return: vrai l'import du fichier a réussi, faux sinon.
+    def get_uploaded_file()->bool:
+        """Retourne la valeur du fichier téléversé (bytes)
+        :return: True si changement, False sinon
         :rtype: bool
         """
-        if not uploaded_file:
-            return False
+        return AppState.get('uploaded_file')
 
-        try:
-            nb_specialites = AppState.get('nb_specialites', int)
-            moulinette = Moulinette()
-            moulinette.nb_specialites = nb_specialites
+    @staticmethod
+    def update_uploaded_file(new_uploaded_file, new_uploaded_file_value)->bool:
+        """Met à jour la valeur du fichier téléversé. Si celle-ci a changé, retourne True sinon False.
 
-            df = pd.read_csv(uploaded_file)
-            moulinette.read_datas(df)
+        :param new_value: la valeur venant du widget
+        :type new_value: ?
+        :return: True si changement, False sinon
+        :rtype: bool
+        """
+        if AppState.update('uploaded_file', new_uploaded_file_value):
+            try:
+                AppState.update('moulinette', None) # necessaire pour maj de la vue des données
+                nb_specialites = AppState.get('nb_specialites', int)
+                moulinette = Moulinette()
+                moulinette.nb_specialites = nb_specialites
 
-            AppState.update('moulinette', moulinette)
-            return True
+                df = pd.read_csv(new_uploaded_file)
+                moulinette.read_datas(df)
 
-        except pd.errors.EmptyDataError:
-            st.error("Le fichier est vide")
-        except pd.errors.ParserError:
-            st.error("Format de fichier invalide")
-        except Exception as e:
-            st.error(f"Erreur technique: {str(e)}")
-            AppState.update('moulinette', None)
+                AppState.update('moulinette', moulinette)
+                return True
+
+            except pd.errors.EmptyDataError:
+                st.error("Le fichier est vide")
+            except pd.errors.ParserError:
+                st.error("Format de fichier invalide")
+            except Exception as e:
+                st.error(f"Erreur technique: {str(e)}")
+                AppState.update('moulinette', None)
 
         return False
 

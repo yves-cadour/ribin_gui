@@ -15,6 +15,7 @@ class AppState:
         # Données
         'nb_specialites': 3,
         'moulinette': None,
+        'uploaded_file': None,
 
         # Groupes
         'seuil_effectif': 24,
