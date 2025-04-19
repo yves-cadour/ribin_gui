@@ -4,7 +4,6 @@ import streamlit as st
 
 # +-----------------------------------------------------------------------+
 # |      state.py                                                         |
-# |      - Gère toute la logique métier                                   |
 # |      - Modifie le state global                                        |
 # |      - Ne contient aucun élément d'UI                                 |
 # +-----------------------------------------------------------------------+
@@ -12,30 +11,28 @@ import streamlit as st
 def init_state():
     """Initialise tous les états nécessaires"""
 
-    if 'etape' not in st.session_state:
-        st.session_state.etape = 1
+    # ------------- NAVIGATION
+    st.session_state.setdefault('etape', 1)
+
+    # ------------- IMPORTATION DES DONNEES
+
+    # nb_specialites -> valeur à déterminer dans la gui avant l'importation des données
+    st.session_state.setdefault('nb_specialites', 3)
+
     # moulinette
-    if 'moulinette' not in st.session_state:
-        st.session_state.moulinette = None
-    if 'nb_specialites' not in st.session_state:
-        st.session_state.nb_specialites = None
-    # menus
-    if 'menus' not in st.session_state:
-        st.session_state.menus = None
-    if 'current_menu_index' not in st.session_state:
-        st.session_state.current_menu_index = None
-    if 'nb_barrettes' not in st.session_state:
-        st.session_state.nb_barrettes = None
-    if 'max_conflits_certains' not in st.session_state:
-        st.session_state.max_conflits_certains = None
-    if 'max_conflits_potentiels_par_conflit_certain' not in st.session_state:
-        st.session_state.max_conflits_potentiels_par_conflit_certain = None
+    st.session_state.setdefault('moulinette', None)
+
+    # ------------- CREATION DES GROUPES
+
     # groupes
-    if 'seuil_effectif' not in st.session_state:
-        st.session_state.seuil_effectif = 24
-    # resolver
-    if 'conflict_resolver' not in st.session_state:
-        st.session_state.conflict_resolver = None
+    st.session_state.setdefault('seuil_effectif', 24)
+
+    # ------------- CREATION DES MENUS
+
+    # menus
+    st.session_state.setdefault('menus', None)
+    st.session_state.setdefault('current_menu_index', None)
+    st.session_state.setdefault('nb_barrettes', None)
 
 def reset_menus():
     """Réinitialise les menus_
