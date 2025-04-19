@@ -4,21 +4,22 @@
 import streamlit as st
 import pandas as pd
 
-from ..controllers import main_controller, menus_controller
+from ..controllers.main_controller import MainController
+from ..controllers.menus_controller import MenusController
 
 def render():
     """
     Point d'entrée pour la vue des menus générés
     """
-    etape = main_controller.get_etape()
-    nb_etapes = main_controller.get_nb_etapes()
+    etape = MainController.get_etape()
+    nb_etapes = MainController.get_nb_etapes()
     st.title(f"📋 Choix des meilleurs menus ({etape}/{nb_etapes})")
 
     # Ajout des boutons de navigation entre menus
-    menus = main_controller.get_menus()
+    menus = MainController.get_menus()
     if menus:
         display_menu_navigation()
-        current_menu = menus[menus_controller.current_menu_index()]
+        current_menu = menus[MenusController.current_menu_index()]
         display_menu(current_menu)
     elif menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")
@@ -26,32 +27,32 @@ def render():
 
 def display_menu_navigation():
     """Affiche les boutons de navigation entre menus"""
-    menu_index = menus_controller.current_menu_index()
-    total_menus = len(main_controller.get_menus())
+    menu_index = MenusController.current_menu_index()
+    total_menus = len(MainController.get_menus())
 
     col1, col2, col3 = st.columns([1, 3, 1])
 
     # Bouton Précédent
     if col1.button("◀ Précédent", disabled=menu_index <= 0):
-        menus_controller.decremente_menu_index()
+        MenusController.decremente_menu_index()
         st.rerun()
 
     # Indicateur de position
-    current_menu_index = menus_controller.current_menu_index()
-    nb_menus = len(main_controller.get_menus())
+    current_menu_index = MenusController.current_menu_index()
+    nb_menus = len(MainController.get_menus())
     col2.markdown(f"**Menu {current_menu_index+1} / {nb_menus}**", unsafe_allow_html=True)
 
     # Bouton Suivant
     if col3.button("Suivant ▶", disabled=menu_index >= total_menus - 1):
-        menus_controller.incremente_menu_index()
+        MenusController.incremente_menu_index()
         st.rerun()
 def display_menu(menu):
     """
     Affiche les menus générés
     """
-    moulinette = main_controller.get_moulinette()
-    menu_index = menus_controller.current_menu_index()
-    menus = main_controller.get_menus()
+    moulinette = MainController.get_moulinette()
+    menu_index = MenusController.current_menu_index()
+    menus = MainController.get_menus()
     st.subheader(f"Menu {menu_index + 1}/{len(menus)}")
 
     # Affichage des barrettes

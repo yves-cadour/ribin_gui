@@ -1,76 +1,99 @@
 """Le contrôleur principal"""
 
 from typing import List
-import streamlit as st
 from ribin.interfaces import _IMoulinette, _IMenu
+from ribin_gui.state import AppState
 
-def get_moulinette()->_IMoulinette:
+class MainController:
     """
-    Retourne la moulinette de la session.
-    """
-    return st.session_state.moulinette
-
-def get_nb_etapes()->int:
-    """
-    Retourne le nombre d'étapes.
-
-    :return: le nombre d'étapes.
-    :rtype: int
-    """
-    return st.session_state.get('nb_etapes')
-
-def get_etape()->int:
-    """
-    Retourne le numéro de l'étape de la session.
-
-    :return: le numéro de l'étape.
-    :rtype: int
-    """
-    return st.session_state.get('etape')
-
-def incrementer_etape()->int:
-    """
-    Incrémente le numéro de l'étape et retourne la nouvelle valeur.
-
-    :return: le nouveau numéro d'étape.
-    :rtype: int
-    """
-    st.session_state.etape += 1
-    return get_etape()
-
-def decrementer_etape()->int:
-    """
-    Décrémente le numéro de l'étape et retourne la nouvelle valeur.
-
-    :return: le nouveau numéro d'étape.
-    :rtype: int
+    Une classe pour le contrôleur principal
     """
 
-    if get_etape() > 1:
-        st.session_state.etape -= 1
-    return get_etape()
+    @staticmethod
+    def get_moulinette()->_IMoulinette:
+        """
+        Retourne la moulinette de la session.
+        """
+        moulinette = AppState.get('moulinette')
+        #if moulinette is None:
+        #    raise ValueError("La moulinette n'a pas été initialisée")
+        return moulinette
 
+    @staticmethod
+    def get_nb_etapes()->int:
+        """
+        Retourne le nombre d'étapes.
 
-def generer_menus()->None:
-    """
-    Génère les menus de la moulinette.
-    """
-    menus = get_moulinette().menus_tries_par_conflits_et_filtres()
-    st.session_state.menus = menus
-    st.session_state.current_menu_index = 0
+        :return: le nombre d'étapes.
+        :rtype: int
+        """
+        return AppState.get('nb_etapes', int)
 
-def get_menus()->List[_IMenu]:
-    """Retourne les menus de la session.
+    @staticmethod
+    def get_etape()->int:
+        """
+        Retourne le numéro de l'étape de la session.
 
-    :return:Les menus
-    :rtype: List[_IMenu]
-    """
-    return st.session_state.menus
+        :return: le numéro de l'étape.
+        :rtype: int
+        """
+        return AppState.get('etape', int)
 
-def reset_menus()->None:
-    """
-    Réinitialise les menus.
-    """
-    st.session_state.moulinette.reset_menus()
-    st.session_state.menus = None
-    st.session_state.current_menu_index = None
+    @staticmethod
+    def incrementer_etape()->int:
+        """
+        Incrémente le numéro de l'étape et retourne la nouvelle valeur.
+
+        :return: le nouveau numéro d'étape.
+        :rtype: int
+        """
+        current = MainController.get_etape()
+        max_etapes = MainController.get_nb_etapes()
+        if current < max_etapes:
+            AppState.update('etape', current + 1)
+        return MainController.get_etape()
+
+    @staticmethod
+    def decrementer_etape()->int:
+        """
+        Décrémente le numéro de l'étape et retourne la nouvelle valeur.
+
+        :return: le nouveau numéro d'étape.
+        :rtype: int
+        """
+        current = MainController.get_etape()
+        if current > 1:
+            AppState.update('etape', current - 1)
+        return MainController.get_etape()
+
+    @staticmethod
+    def generer_menus()->None:
+        """
+        Génère les menus de la moulinette.
+        """
+        moulinette = MainController.get_moulinette()
+        menus = moulinette.menus_tries_par_conflits_et_filtres()
+
+        AppState.update('menus', menus)
+        AppState.update('current_menu_index', 0)
+
+    @staticmethod
+    def get_menus()->List[_IMenu]:
+        """Retourne les menus de la session.
+
+        :return:Les menus
+        :rtype: List[_IMenu]
+        """
+        return AppState.get('menus')
+
+    @staticmethod
+    def reset_menus()->None:
+        """
+        Réinitialise les menus.
+        """
+        moulinette = MainController.get_moulinette()
+        moulinette.reset_menus()
+
+        AppState.update('menus', None)
+        AppState.update('current_menu_index', None)
+        AppState.update('nb_barrettes', None)

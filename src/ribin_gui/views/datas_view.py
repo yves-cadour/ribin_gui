@@ -3,15 +3,15 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-from ..controllers import main_controller
+from ..controllers.main_controller import MainController
 
 def render():
     """
     Point d'entrée pour la vue des données
     """
-    etape = main_controller.get_etape()
-    nb_etapes = main_controller.get_nb_etapes()
-    moulinette = main_controller.get_moulinette()
+    etape = MainController.get_etape()
+    nb_etapes = MainController.get_nb_etapes()
+    moulinette = MainController.get_moulinette()
     st.title(f"📤 Importation des données ({etape}/{nb_etapes})")
 
     if moulinette:
@@ -23,7 +23,7 @@ def render():
 
 def _display_data_tab(tab):
     # Implémentation de l'affichage des données...
-    moulinette = main_controller.get_moulinette()
+    moulinette = MainController.get_moulinette()
     with tab:
         st.subheader("Données importées")
         specialites = moulinette.specialites
@@ -59,7 +59,7 @@ def _display_data_tab(tab):
 
 
 def _display_stats_tab(tab):
-    moulinette = main_controller.get_moulinette()
+    moulinette = MainController.get_moulinette()
     with tab:
         st.subheader("Statistiques")
         specialites = moulinette.specialites

@@ -31,6 +31,24 @@ class AppState:
         for key, default in cls._DEFAULTS.items():
             st.session_state.setdefault(key, default)
 
+    @classmethod
+    def get(cls, key: str, expected_type: Optional[type] = None) -> Any:
+        """Récupère une valeur de la session avec vérification de type"""
+        value = st.session_state.get(key, cls._DEFAULTS.get(key))
+
+        if expected_type and not isinstance(value, expected_type):
+            raise TypeError(f"{key} doit être de type {expected_type}, a reçu {type(value)}")
+        return value
+
+    @classmethod
+    def update(cls, key: str, value: Any) -> bool:
+        """Met à jour une valeur seulement si elle a changé"""
+        current = cls.get(key)
+        if current != value:
+            st.session_state[key] = value
+            return True
+        return False
+
 
 # Fonction d'initialisation pour compatibilité ascendante
 def init_state():

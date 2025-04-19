@@ -2,7 +2,7 @@
 
 import streamlit as st
 from ..views import sidebar_view, datas_view, groups_view, menus_view
-from ..controllers import main_controller
+from ..controllers.main_controller import MainController
 
 def render():
     """
@@ -22,7 +22,7 @@ def render():
     sidebar_view.render()
 
     # affichage des vues selon l'étape
-    etape = main_controller.get_etape()
+    etape = MainController.get_etape()
     if etape == 1:
         datas_view.render()
     elif etape == 2:

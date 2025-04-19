@@ -1,14 +1,15 @@
 """La vue de la barre latérale"""
 
 import streamlit as st
-from ..controllers import sidebar_controller, main_controller
+from ..controllers.main_controller import MainController
+from ..controllers.sidebar_controller import SidebarController
 
 
 def render():
     """Composition de la sidebar"""
     with st.sidebar:
         sidebar_navigation()
-        etape = main_controller.get_etape()
+        etape = MainController.get_etape()
         if etape == 1:
             sidebar_nb_specialites()
             sidebar_upload()
@@ -25,15 +26,15 @@ def render():
 
 def sidebar_navigation():
     """Affiche les boutons de navigation"""
-    etape = main_controller.get_etape()
-    nb_etapes = main_controller.get_nb_etapes()
-    moulinette = main_controller.get_moulinette()
+    etape = MainController.get_etape()
+    nb_etapes = MainController.get_nb_etapes()
+    moulinette = MainController.get_moulinette()
     st.title("Navigation")
     col1, col2 = st.columns(2)
     if etape > 1 and col1.button("← Retour",
                                  key='previous',
                                  type='primary'):
-        main_controller.decrementer_etape()
+        MainController.decrementer_etape()
         st.rerun()
     if etape < nb_etapes and col2.button("Suivant →",
                    key="next",
@@ -41,7 +42,7 @@ def sidebar_navigation():
         if moulinette is None:
             st.error("Veuillez d'abord uploader un fichier valide.")
         else:
-            main_controller.incrementer_etape()
+            MainController.incrementer_etape()
             st.rerun()
 
 # +------------------------------------------------------------------------+
@@ -52,7 +53,7 @@ def sidebar_nb_specialites():
     """
     Affiche le slider pour le choix du nombre de spécialités par élève.
     """
-    etape = main_controller.get_etape()
+    etape = MainController.get_etape()
     st.header(f"{etape}. Données")
     nb_specialites = st.slider(
                 "Nombre de spécialités par élève",
@@ -62,7 +63,7 @@ def sidebar_nb_specialites():
                 key="nb_specialites",
             )
     if nb_specialites:
-        if sidebar_controller.update_nb_specialites(nb_specialites):
+        if SidebarController.update_nb_specialites(nb_specialites):
             st.info('Moulinette réinitialisée')
 
 def sidebar_upload():
@@ -71,7 +72,7 @@ def sidebar_upload():
                                      type=["csv"],
                                      key ="file_uploader")
     if uploaded_file:
-        if sidebar_controller.handle_upload(uploaded_file):
+        if SidebarController.handle_upload(uploaded_file):
             st.success("Fichier importé avec succès !")
 
 
@@ -81,10 +82,10 @@ def sidebar_upload():
 
 def sidebar_groups():
     """Affiche la gestion des groupes"""
-    etape = main_controller.get_etape()
+    etape = MainController.get_etape()
     st.header(f"{etape}. Groupes")
     # 1. Récupérer la valeur actuelle UNE FOIS
-    current_seuil = sidebar_controller.get_seuil_effectif()
+    current_seuil = SidebarController.get_seuil_effectif()
 
     # 2. Afficher le slider avec cette valeur
     new_seuil = st.slider(
@@ -96,7 +97,7 @@ def sidebar_groups():
     )
     # 3. Mettre à jour seulement si changement !!!
     if new_seuil != current_seuil:
-        sidebar_controller.update_seuil_effectif(new_seuil)
+        SidebarController.update_seuil_effectif(new_seuil)
         st.rerun()  # Force une actualisation propre
 
     # 4. Afficher la valeur actuelle
@@ -108,13 +109,13 @@ def sidebar_groups():
 
 def sidebar_menus():
     """Affiche la gestion des menus"""
-    moulinette = main_controller.get_moulinette()
-    etape = main_controller.get_etape()
+    moulinette = MainController.get_moulinette()
+    etape = MainController.get_etape()
     st.header(f"{etape}. Menus")
 
-    help_widget = f"{len(main_controller.get_moulinette().specialites)} spécialites \
-            dans {main_controller.get_moulinette().nb_barrettes} barrettes \
-            soit {main_controller.get_moulinette().nombre_menus_possibles()} menus."
+    help_widget = f"{len(MainController.get_moulinette().specialites)} spécialites \
+            dans {MainController.get_moulinette().nb_barrettes} barrettes \
+            soit {MainController.get_moulinette().nombre_menus_possibles()} menus."
 
     # nb_barrettes
     nb_barrettes = st.slider("Nombre de barrettes",
@@ -124,7 +125,7 @@ def sidebar_menus():
                             help = help_widget,
                             key="nb_barrettes_widget",)
     if nb_barrettes!=moulinette.nb_barrettes:
-        if sidebar_controller.update_nb_barrettes(nb_barrettes):
+        if SidebarController.update_nb_barrettes(nb_barrettes):
             st.rerun()
     col1, col2 = st.columns(2)
     with col1:
@@ -135,7 +136,7 @@ def sidebar_menus():
                     value=moulinette.max_conflits_certains,
                     key="max_conflits_certains",)
         if max_conflits!=moulinette.max_conflits_certains:
-            sidebar_controller.update_max_conflits_certains(max_conflits)
+            SidebarController.update_max_conflits(max_conflits, conflict_type='insolubles')
             st.rerun()
     with col2:
         # max_conflits_potentiels_par_conflit_certain
@@ -145,7 +146,7 @@ def sidebar_menus():
                     value=moulinette.max_conflits_potentiels_par_conflit_certain,
                     key="max_conflits_potentiels_par_conflit_certain",)
         if max_potentiels!=moulinette.max_conflits_potentiels_par_conflit_certain:
-            sidebar_controller.update_max_conflits_potentiels(max_potentiels)
+            SidebarController.update_max_conflits(max_potentiels, conflict_type='potentiels')
             st.rerun()
     c = moulinette.max_conflits_certains
     p = moulinette.max_conflits_potentiels_par_conflit_certain
@@ -153,8 +154,8 @@ def sidebar_menus():
 
     if st.button("⚙️ Générer les menus", type="primary", key="generate_menus"):
         with st.spinner("Génération en cours..."):
-            main_controller.generer_menus()
-            st.success(f"{len(main_controller.get_menus())} meilleurs menus générés avec succès!")
+            MainController.generer_menus()
+            st.success(f"{len(MainController.get_menus())} meilleurs menus générés avec succès!")
 
 # +------------------------------------------------------------------------+
 # |                       RESOLUTION DES CONFLITS                          |
