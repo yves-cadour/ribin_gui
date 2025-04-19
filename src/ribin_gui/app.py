@@ -11,8 +11,11 @@ def config_page():
     st.set_page_config(layout="wide", page_title="Gestion des menus de spécialités")
     st.markdown("""
     <style>
-        .sidebar .stButton>button { width: 100%; margin: 5px 0; }
-        div[data-testid="stExpander"] div[role="button"] p { font-weight: bold; }
+        *  {font-size : 15px !important}
+        h1 { font-size: 25px !important}
+        h2 { font-size: 20px !important}
+        h3 { font-size: 17px !important}
+        .st-emotion-cache-t1wise {padding : 20px !important}
     </style>
     """, unsafe_allow_html=True)
 

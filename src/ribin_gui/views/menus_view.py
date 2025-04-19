@@ -63,7 +63,7 @@ def render():
         for i, (col, set_groupes_eleves) in enumerate(zip(cols, (insolubles, potentiels))):
             with col:
                 type_conflit = "insolubles" if i == 0 else "potentiels"
-                st.subheader(f"Conflits {type_conflit}")
+                st.markdown(f"**Conflits {type_conflit}**")
                 if set_groupes_eleves:
                     for groupes, eleves in set_groupes_eleves.items():
                         groupes_labels = [f"{g.specialite.icon} {g.label}" for g in groupes]
