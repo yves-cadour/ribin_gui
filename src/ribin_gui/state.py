@@ -1,36 +1,40 @@
-"""Gestion des états"""
+"""Gestion centralisée de l'état global de l'application"""
 
+from typing import Any, Optional
 import streamlit as st
 
-# +-----------------------------------------------------------------------+
-# |      state.py                                                         |
-# |      - Modifie le state global                                        |
-# |      - Ne contient aucun élément d'UI                                 |
-# +-----------------------------------------------------------------------+
+class AppState:
+    """Classe encapsulant l'état de l'application"""
 
+    # Définition des clés avec valeurs par défaut
+    _DEFAULTS = {
+        # Navigation
+        'etape': 1,
+        'nb_etapes': 4,
+
+        # Données
+        'nb_specialites': 3,
+        'moulinette': None,
+
+        # Groupes
+        'seuil_effectif': 24,
+
+        # Menus
+        'menus': None,
+        'current_menu_index': None,
+        'nb_barrettes': None
+    }
+
+    @classmethod
+    def init(cls):
+        """Initialise tous les états nécessaires"""
+        for key, default in cls._DEFAULTS.items():
+            st.session_state.setdefault(key, default)
+
+
+# Fonction d'initialisation pour compatibilité ascendante
 def init_state():
-    """Initialise tous les états nécessaires"""
-
-    # ------------- NAVIGATION
-    st.session_state.setdefault('etape', 1)
-    st.session_state.setdefault('nb_etapes', 4)
-
-    # ------------- IMPORTATION DES DONNEES
-
-    # nb_specialites -> valeur à déterminer dans la gui avant l'importation des données
-    st.session_state.setdefault('nb_specialites', 3)
-
-    # moulinette
-    st.session_state.setdefault('moulinette', None)
-
-    # ------------- CREATION DES GROUPES
-
-    # groupes
-    st.session_state.setdefault('seuil_effectif', 24)
-
-    # ------------- CREATION DES MENUS
-
-    # menus
-    st.session_state.setdefault('menus', None)
-    st.session_state.setdefault('current_menu_index', None)
-    st.session_state.setdefault('nb_barrettes', None)
+    """
+    Initialisation de tous les états de la session
+    """
+    AppState.init()
