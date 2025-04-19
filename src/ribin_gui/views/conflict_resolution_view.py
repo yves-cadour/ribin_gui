@@ -23,7 +23,7 @@ def display_group_moves():
                 if cols[1].button("Appliquer", key=f"apply_{move['group'].id}"):
                     resolver.apply_group_move(move['group'], move['targets'][0]['barrette'])
                     st.success("Déplacement appliqué!")
-                    st.rerun()
+                    #st.rerun()
 
 def display_student_moves():
     """Affiche les suggestions de déplacement d'élèves"""
@@ -107,7 +107,7 @@ def display_group_move_suggestions():
             if cols[1].button("Déplacer", key=f"move_{group.id}"):
                 resolver.apply_group_move(group, best_target['barrette'])
                 st.success(f"Groupe {group.label} déplacé !")
-                st.rerun()
+                #st.rerun()
 
             # Afficher d'autres options
             st.markdown("**Autres options valides:**")
