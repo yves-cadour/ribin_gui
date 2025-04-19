@@ -2,9 +2,9 @@
 
 import pandas as pd
 from ribin import Moulinette
-
 import streamlit as st
 
+from ribin_gui.controllers import main_controller
 # +-----------------------------------------------------------+
 # |           CONTROLEUR DE LA VUE 'SIDEBAR'                  |
 # +-----------------------------------------------------------+
@@ -87,3 +87,51 @@ def update_seuil_effectif(new_value:int)->bool:
         return True
     return False
 
+# +-----------------------------------------------------------+
+# |            etape 3 (gestion des menus)                    |
+# +-----------------------------------------------------------+
+
+def update_nb_barrettes(new_value:int)->bool:
+    """Met à jour le nombre de barrettes dans la moulinette
+
+    :param new_value: la nouvelle valeur.
+    :type new_value: int
+    :return: True si la valeur a changé, False sinon.
+    :rtype: bool
+    """
+    moulinette = main_controller.get_moulinette()
+    if moulinette.nb_barrettes != new_value:
+        moulinette.nb_barrettes = new_value
+        main_controller.reset_menus()
+        return True
+    return False
+
+def update_max_conflits_certains(new_value:int)->bool:
+    """Met à jour le nombre maxium de conflits insolubles à afficher.
+
+    :param new_value: la nouvelle valeur.
+    :type new_value: int
+    :return: True si la valeur a changé, False sinon.
+    :rtype: bool
+    """
+    moulinette = main_controller.get_moulinette()
+    if moulinette.max_conflits_certains != new_value:
+        moulinette.max_conflits_certains = new_value
+        main_controller.reset_menus()
+        return True
+    return False
+
+def update_max_conflits_potentiels(new_value:int)->bool:
+    """Met à jour le nombre maxium de conflits potentiels (par conflit insoluble) à afficher.
+
+    :param new_value: la nouvelle valeur.
+    :type new_value: int
+    :return: True si la valeur a changé, False sinon.
+    :rtype: bool
+    """
+    moulinette = main_controller.get_moulinette()
+    if moulinette.max_conflits_potentiels_par_conflit_certain != new_value:
+        moulinette.max_conflits_potentiels_par_conflit_certain = new_value
+        main_controller.reset_menus()
+        return True
+    return False

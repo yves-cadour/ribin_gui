@@ -13,6 +13,7 @@ def init_state():
 
     # ------------- NAVIGATION
     st.session_state.setdefault('etape', 1)
+    st.session_state.setdefault('nb_etapes', 4)
 
     # ------------- IMPORTATION DES DONNEES
 
@@ -33,11 +34,3 @@ def init_state():
     st.session_state.setdefault('menus', None)
     st.session_state.setdefault('current_menu_index', None)
     st.session_state.setdefault('nb_barrettes', None)
-
-def reset_menus():
-    """Réinitialise les menus_
-    """
-    st.session_state.moulinette.reset_menus()
-    st.session_state.menus = None
-    st.session_state.current_menu_index = None
-

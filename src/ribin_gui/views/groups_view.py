@@ -9,7 +9,9 @@ def render():
     """
     Entrée principale de la vue
     """
-    st.title("👥 Gestion des groupes")
+    etape = main_controller.get_etape()
+    nb_etapes = main_controller.get_nb_etapes()
+    st.title(f"👥 Gestion des groupes ({etape}/{nb_etapes})")
 
     # récupération des variables
     moulinette = main_controller.get_moulinette()
@@ -17,7 +19,7 @@ def render():
         st.warning("Importez d'abord un fichier valide")
         return
     specialites = moulinette.specialites
-    separateurs = calculer_separateurs(len(specialites), 3)
+    separateurs = calculer_separateurs(len(specialites), 5)
     seuil = groups_controller.get_seuil_effectif()
 
     cols = st.columns(len(separateurs))
@@ -25,8 +27,9 @@ def render():
         with col:
             for spe in specialites[start:end]:
                 effectif_moyen = groups_controller.get_effectif_moyen_par_groupe(spe)
-                with st.expander(f"{spe.icon} **{spe.label}** ({len(spe.eleves)} élèves)",
+                with st.expander(f"**{spe.label}** ({len(spe.eleves)} élèves)",
                                   expanded=True,
+                                  icon=spe.icon,
                                   ):
                     # Bouton Ajouter
                     button_type = 'primary' if effectif_moyen>=seuil else 'secondary'
@@ -37,7 +40,8 @@ def render():
                         st.rerun()
                     # Liste des groupes existants
                     if spe.groupes:
-                        for i, groupe in enumerate(groups_controller.get_groupes_for_specialite(spe)):
+                        g_for_spe = groups_controller.get_groupes_for_specialite(spe)
+                        for i, groupe in enumerate(g_for_spe):
                             cols = st.columns([4, 1])
                             # Style conditionnel pour la ligne du groupe
                             effectif = len(groupe.eleves)
