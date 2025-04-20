@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from ..controllers.main_controller import MainController
+from ..utils import get_icon, get_label
 
 def render():
     """
@@ -12,7 +13,8 @@ def render():
     etape = MainController.get_etape()
     nb_etapes = MainController.get_nb_etapes()
     moulinette = MainController.get_moulinette()
-    st.title(f"📤 Importation des données ({etape}/{nb_etapes})")
+    label, icon = get_label(etape), get_icon(etape)
+    st.title(f"{icon} {label} ({etape}/{nb_etapes})")
 
     if moulinette:
         tab1, tab2 = st.tabs(["📊 Visualisation", "📈 Statistiques"])

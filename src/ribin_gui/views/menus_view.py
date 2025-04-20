@@ -6,6 +6,7 @@ import pandas as pd
 
 from ..controllers.main_controller import MainController
 from ..controllers.menus_controller import MenusController
+from ..utils import get_icon, get_label
 
 def render():
     """
@@ -13,7 +14,8 @@ def render():
     """
     etape = MainController.get_etape()
     nb_etapes = MainController.get_nb_etapes()
-    st.title(f"📋 Choix des meilleurs menus ({etape}/{nb_etapes})")
+    label, icon = get_label(etape), get_icon(etape)
+    st.title(f"{icon} {label} ({etape}/{nb_etapes})")
 
     # Ajout des boutons de navigation entre menus
     menus = MainController.get_menus()

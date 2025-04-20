@@ -17,3 +17,17 @@ def calculer_separateurs(n: int, d: int) -> list[tuple[int, int]]:
         separateurs.append((start, end))
         start = end
     return separateurs
+
+ETAPES = {1 : {'label':"Importation des données", "icon":"📤"},
+          2 : {'label':"Gestion des groupes", "icon":"👥"},
+          3: {'label':"Choix des meilleurs menus", "icon":"📋"},
+          4: {'label':"Placement des groupes supplémentaires", "icon":""},
+          5: {'label':"Placement des élèves", "icon":""},
+          }
+
+def get_label(etape:int)->str:
+    return ETAPES.get(etape, {}).get('label','')
+
+def get_icon(etape:int)->str:
+    return ETAPES.get(etape, {}).get('icon','')
+

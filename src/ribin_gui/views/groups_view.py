@@ -4,7 +4,7 @@ import streamlit as st
 
 from ..controllers.main_controller import MainController
 from ..controllers.groups_controller import GroupsController
-from ..utils import calculer_separateurs
+from ..utils import calculer_separateurs, get_icon, get_label
 
 def render():
     """
@@ -12,7 +12,8 @@ def render():
     """
     etape = MainController.get_etape()
     nb_etapes = MainController.get_nb_etapes()
-    st.title(f"👥 Gestion des groupes ({etape}/{nb_etapes})")
+    label, icon = get_label(etape), get_icon(etape)
+    st.title(f"{icon} {label} ({etape}/{nb_etapes})")
 
     # récupération des variables
     moulinette = MainController.get_moulinette()

@@ -3,6 +3,7 @@
 import streamlit as st
 from ..controllers.main_controller import MainController
 from ..controllers.sidebar_controller import SidebarController
+from ..utils import get_icon, get_label
 
 
 def render():
@@ -31,17 +32,29 @@ def sidebar_navigation():
     moulinette = MainController.get_moulinette()
     st.title("Navigation")
     col1, col2 = st.columns(2)
-    if etape > 1 and col1.button("← Retour",
-                                 key='previous',
-                                 type='primary'):
+
+    button_args = {
+        'label': "← Retour",
+        'key': 'previous',
+        'type': 'primary',
+        'help': get_label(etape - 1)
+    }
+    if icon := get_icon(etape - 1):
+        button_args['icon'] = icon
+    if etape > 1 and col1.button(**button_args):
         MainController.decrementer_etape()
         st.rerun()
-    print(f"moulinette={moulinette}")
-    disabled = moulinette is None
-    if etape < nb_etapes and col2.button("Suivant →",
-                   key="next",
-                   type='primary',
-                   disabled=disabled):
+    #print(f"moulinette={moulinette}")
+    button_args = {
+        'label': "Suivant →",
+        'key': 'next',
+        'type': 'primary',
+        'help': get_label(etape + 1),
+        'disabled' : moulinette is None,
+    }
+    if icon := get_icon(etape + 1):
+        button_args['icon'] = icon
+    if etape < nb_etapes and col2.button(**button_args):
         if moulinette is None:
             st.error("Veuillez d'abord uploader un fichier valide.")
         else:
@@ -76,7 +89,7 @@ def sidebar_upload():
                                      key ="file_uploader")
     if uploaded_file and uploaded_file.getvalue() != SidebarController.get_uploaded_file():
         if SidebarController.update_uploaded_file(uploaded_file, uploaded_file.getvalue()):
-            print('changement')
+            #print('changement')
             st.success("Fichier importé avec succès !")
             st.rerun() #sinon, pas de bouton suivant :-(
 
