@@ -23,7 +23,8 @@ class AppState:
         # Menus
         'menus': None,
         'current_menu_index': None,
-        'nb_barrettes': None
+        'nb_barrettes': None,
+        'selected_menu' : None,
     }
 
     @classmethod

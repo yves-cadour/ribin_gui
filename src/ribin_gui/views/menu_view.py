@@ -2,6 +2,28 @@
 
 import streamlit as st
 import pandas as pd
+from ..controllers.main_controller import MainController
+from ..controllers.menus_controller import MenusController
+from ..controllers.menu_controller import MenuController
+from ..views.menus_view import display_menu, display_conflits
+from ..utils import get_icon, get_label
+
+def render():
+    """
+    Point d'entrée pour la vue du menu selectionné.
+    """
+    etape = MainController.get_etape()
+    nb_etapes = MainController.get_nb_etapes()
+    label, icon = get_label(etape), get_icon(etape)
+    st.title(f"{icon} {label} ({etape}/{nb_etapes})")
+    selected_menu = MenusController.get_menu()
+    if selected_menu is None:
+        st.warning("Importez d'abord un fichier valide")
+        return
+    else:
+        display_menu(selected_menu)
+        _, potentiels = selected_menu.conflicts(MainController.get_moulinette())
+        display_conflits(potentiels, title="Conflits potentiels")
 
 def display_group_moves():
     """Affiche les suggestions de déplacement de groupes"""
@@ -52,28 +74,6 @@ def display_student_moves():
             apply_student_moves([solutions[0]])  # Applique la meilleure solution
     else:
         st.warning("Aucune solution trouvée pour ce conflit")
-
-def render():
-    st.title("Résolution des conflits")
-
-    if 'current_resolver' not in st.session_state:
-        st.info("Cliquez sur 'Analyser les conflits' dans la sidebar pour commencer")
-        return
-
-    display_group_moves()
-    display_student_moves()
-
-    # Affichage des stats d'équilibre
-    st.subheader("Équilibre des groupes")
-    for spe in st.session_state.moulinette.specialites:
-        stats = st.session_state.current_resolver.get_group_balance_stats(spe)
-        with st.expander(f"{spe.label} (écart: {stats['deviation']})"):
-            groups = sorted([g for g in spe.groupes if not g.is_default], key=lambda x: x.number)
-            for g in groups:
-                st.progress(
-                    len(g.eleves) / (stats['average'] * 1.5) if stats['average'] > 0 else 0,
-                    text=f"{g.label}: {len(g.eleves)} élèves"
-                )
 
 def display_group_move_suggestions():
     if 'current_resolver' not in st.session_state:

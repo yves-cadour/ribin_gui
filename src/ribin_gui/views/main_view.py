@@ -1,7 +1,7 @@
 """La vue des principale"""
 
 import streamlit as st
-from ..views import sidebar_view, datas_view, groups_view, menus_view
+from ..views import sidebar_view, datas_view, groups_view, menus_view, menu_view
 from ..controllers.main_controller import MainController
 
 def render():
@@ -12,9 +12,9 @@ def render():
     st.markdown("""
     <style>
         *  {font-size : 15px !important}
-        h1 { font-size: 25px !important}
-        h2 { font-size: 20px !important}
-        h3 { font-size: 17px !important}
+        h1 { font-size: 24px !important}
+        h2 { font-size: 22px !important}
+        h3 { font-size: 20px !important}
         .st-emotion-cache-t1wise {padding : 20px !important}
     </style>
     """, unsafe_allow_html=True)
@@ -29,3 +29,5 @@ def render():
         groups_view.render()
     elif etape == 3:
         menus_view.render()
+    elif etape == 4:
+        menu_view.render()

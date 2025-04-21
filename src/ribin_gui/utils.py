@@ -20,7 +20,7 @@ def calculer_separateurs(n: int, d: int) -> list[tuple[int, int]]:
 
 ETAPES = {1 : {'label':"Importation des données", "icon":"📤"},
           2 : {'label':"Gestion des groupes", "icon":"👥"},
-          3: {'label':"Choix des meilleurs menus", "icon":"📋"},
+          3: {'label':"Choix des meilleurs menus", "icon":"🔍"},
           4: {'label':"Placement des groupes supplémentaires", "icon":""},
           5: {'label':"Placement des élèves", "icon":""},
           }

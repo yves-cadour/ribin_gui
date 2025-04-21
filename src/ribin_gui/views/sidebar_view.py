@@ -18,6 +18,8 @@ def render():
             sidebar_groups()
         elif etape == 3:
             sidebar_menus()
+        elif etape == 4:
+            sidebar_menu()
         # elif etape == 4:  # Nouvelle étape
         #     side_conflict_resolution()
 
@@ -174,3 +176,12 @@ def sidebar_menus():
         with st.spinner("Génération en cours..."):
             MainController.generer_menus()
             st.success(f"{len(MainController.get_menus())} meilleurs menus générés avec succès!")
+
+# +------------------------------------------------------------------------+
+# |                      GESTION DU MENU SELECTIONNE                       |
+# +------------------------------------------------------------------------+
+
+def sidebar_menu():
+    moulinette = MainController.get_moulinette()
+    etape = MainController.get_etape()
+    st.header(f"{etape}. Menu selectionné")

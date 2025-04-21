@@ -1,7 +1,8 @@
 """Le contrôleur de la vue des menus"""
 
 from typing import Optional
-
+from ribin.interfaces import _IMenu, _IGroupe
+from ribin.menu_optimizer import MenuOptimizer
 from ribin_gui.state import AppState
 from ribin_gui.controllers.main_controller import MainController
 
@@ -50,3 +51,29 @@ class MenusController:
             AppState.update('current_menu_index', new_index)
             return new_index
         return current
+
+    @staticmethod
+    def get_menu()->_IMenu:
+        """Retourne le menu selectionné.
+
+        :return:Le menu
+        :rtype: _IMenu
+        """
+        return AppState.get('selected_menu')
+
+    @staticmethod
+    def update_menu(new_menu:_IMenu)->bool:
+        """
+        Met à jour le menu selectionné dans la session.
+        Retourne True si il est différent du menu courant, False sinon
+
+        :param new_menu: le menu
+        :type new_menu: _IMenu
+        :return: True si différent, False sinon.
+        :rtype: bool
+        """
+        menu = MenusController.get_menu()
+        if new_menu != menu:
+            AppState.update('selected_menu', new_menu)
+            return True
+        return False

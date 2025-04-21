@@ -23,16 +23,27 @@ def render():
         display_menu_navigation()
         current_menu = menus[MenusController.current_menu_index()]
         display_menu(current_menu)
+        # Affichage des conflits
+        current_menu = menus[MenusController.current_menu_index()]
+        insolubles, potentiels = current_menu.conflicts(MainController.get_moulinette())
+        st.subheader("Conflits par concomitance")
+        col1, col2 = st.columns(2, gap="small")
+        with col1:
+            display_conflits(insolubles, title="Conflits insolubles")
+        with col2:
+            display_conflits(potentiels, title="Conflits potentiels")
     elif menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")
 
 
 def display_menu_navigation():
     """Affiche les boutons de navigation entre menus"""
+    menus = MainController.get_menus()
     menu_index = MenusController.current_menu_index()
-    total_menus = len(MainController.get_menus())
+    current_menu = menus[MenusController.current_menu_index()]
+    nb_menus = len(MainController.get_menus())
 
-    col1, col2, col3 = st.columns([1, 3, 1])
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
     # Bouton Précédent
     if col1.button("◀ Précédent", disabled=menu_index <= 0):
@@ -41,18 +52,26 @@ def display_menu_navigation():
 
     # Indicateur de position
     current_menu_index = MenusController.current_menu_index()
-    nb_menus = len(MainController.get_menus())
-    col2.markdown(f"**Menu {current_menu_index+1} / {nb_menus}**", unsafe_allow_html=True)
+    col2.subheader(f"📋 Menu {current_menu_index+1} / {nb_menus}")
+
+    # Selection du menu courant
+    if col4.button("Choisir ce menu",
+                   key="menu_selection",
+                   type = 'primary',
+                   icon='👆'):
+        MenusController.update_menu(current_menu)
+        MainController.incrementer_etape()
+        st.rerun()
 
     # Bouton Suivant
-    if col3.button("Suivant ▶", disabled=menu_index >= total_menus - 1):
+    if col3.button("Suivant ▶"):
         MenusController.incremente_menu_index()
         st.rerun()
+
 def display_menu(menu):
     """
     Affiche les menus générés
     """
-    moulinette = MainController.get_moulinette()
     menu_index = MenusController.current_menu_index()
     menus = MainController.get_menus()
     st.subheader(f"Menu {menu_index + 1}/{len(menus)}")
@@ -63,7 +82,7 @@ def display_menu(menu):
 
     for i, (col, barrette) in enumerate(zip(cols, barrettes)):
         with col:
-            st.markdown(f"**☰&nbsp;&nbsp;BARRETTE {i+1}**")
+            st.markdown(f"**☰&nbsp;&nbsp;BARRETTE {barrette.number}**")
             for groupe in barrette.groupes:
                 spe = groupe.specialite
                 st.markdown(f"""
@@ -72,24 +91,23 @@ def display_menu(menu):
                 </div>
                 """, unsafe_allow_html=True)
 
-    # Affichage des conflits
-    insolubles, potentiels = menu.conflicts(moulinette)
-    st.subheader("Conflits par concomitance")
-    cols = st.columns(2, gap="small")
-    for i, (col, groupes_eleves) in enumerate(zip(cols, (insolubles, potentiels))):
-        with col:
-            type_conflit = "insolubles" if i == 0 else "potentiels"
-            st.markdown(f"**Conflits {type_conflit}**")
-            if groupes_eleves:
-                for groupes, eleves in groupes_eleves.items():
-                    groupes_labels = [f"{g.specialite.icon} {g.label}" for g in groupes]
-                    concomitance = ' ⚡ ⚡ ⚡ '.join(groupes_labels)
-                    with st.expander(f"Concomitance : {concomitance}", expanded=True):
-                        if eleves:
-                            st.dataframe(pd.DataFrame(
-                                [(f"{e.nom} {e.prenom}", ", ".join(s.label for s in moulinette.get_specialites_for_eleve(e)), ", ".join(g.label for g in moulinette.get_groupes_for_eleve(e)))
-                                for e in sorted(eleves, key=moulinette.get_specialites_for_eleve)],
-                                columns=["Élève", "Spécialités", "Groupes"]
-                            ), hide_index=True)
-            else:
-                st.info("Aucun conflit")
+def display_conflits(groupes_eleves, title = "conflits"):
+    moulinette = MainController.get_moulinette()
+    current_menu = MainController.get_menus()[MenusController.current_menu_index()]
+    st.markdown(f"{title}")
+    if groupes_eleves:
+        for groupes, eleves in groupes_eleves.items():
+            concomitances = current_menu.get_concomitances_for_groupes(groupes)
+            concomitances_textes = []
+            for groupes_conflits, barrette_concernee in concomitances.items():
+                concomitances_textes.append((f"{' ⚡ '.join([''.join([g.specialite.icon, g.label]) for g in groupes_conflits])} sur BARRETTE {barrette_concernee.number}"))
+            with st.expander(f"Concomitance : {'/ '.join(concomitances_textes)}", expanded=True):
+                if eleves:
+                    st.dataframe(pd.DataFrame(
+                        [(f"{e.nom} {e.prenom}", ", ".join(g.label for g in moulinette.get_groupes_for_eleve(e)))
+                        for e in sorted(eleves, key=moulinette.get_specialites_for_eleve)],
+                        columns=["Élève", "Groupes"]),
+                        hide_index=True,
+)
+    else:
+        st.info("Aucun conflit")

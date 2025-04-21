@@ -97,3 +97,4 @@ class MainController:
         AppState.update('menus', None)
         AppState.update('current_menu_index', None)
         AppState.update('nb_barrettes', None)
+        AppState.update('selected_menu', None)
