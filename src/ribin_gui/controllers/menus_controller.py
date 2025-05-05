@@ -2,7 +2,6 @@
 
 from typing import Optional
 from ribin.interfaces import _IMenu, _IGroupe
-from ribin.menu_optimizer import MenuOptimizer
 from ribin_gui.state import AppState
 from ribin_gui.controllers.main_controller import MainController
 
@@ -59,7 +58,10 @@ class MenusController:
         :return:Le menu
         :rtype: _IMenu
         """
-        return AppState.get('selected_menu')
+        #print("menus_controller > get_menu")
+        current_menu = AppState.get('menus')[AppState.get('current_menu_index')]
+        #print(f"current_menu : {current_menu}")
+        return current_menu
 
     @staticmethod
     def update_menu(new_menu:_IMenu)->bool:
@@ -74,6 +76,30 @@ class MenusController:
         """
         menu = MenusController.get_menu()
         if new_menu != menu:
-            AppState.update('selected_menu', new_menu)
+            menus = AppState.get('menus')
+            current_menu_index = AppState.get('current_menu_index')
+            menus[current_menu_index] = new_menu
             return True
         return False
+
+    @staticmethod
+    def deplacer_groupe(groupe:_IGroupe, barrette_number:int)->_IMenu:
+        """
+        Déplace un groupe dans une barrette
+
+        :param groupe: le groupe à déplacer
+        :type groupe: _IGroupe
+        :param barrette_number: le numéro de la barrette de destination
+        :type barrette_number: int
+        :return: le nouveau menu
+        :rtype: _IMenu
+        """
+        print(f"---menus_controller > deplacer_groupe---(groupe:{groupe}, barrette_number:{barrette_number})")
+        menu = MenusController.get_menu()
+        print(f"menu:{menu}")
+        barrette_destination = menu.get_barrette_with_number(barrette_number)
+        print(f"barrette_destination : {barrette_destination}")
+        menu = menu.with_move_groupe_to_barrette(groupe, barrette_destination)
+        print(f"menu:{menu}")
+        MenusController.update_menu(menu)
+        return menu

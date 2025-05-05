@@ -73,6 +73,7 @@ class MainController:
         """
         moulinette = MainController.get_moulinette()
         menus = moulinette.menus_tries_par_conflits_et_filtres()
+        menus = moulinette.add_extra_groups_to_menus(menus)
 
         AppState.update('menus', menus)
         AppState.update('current_menu_index', 0)
