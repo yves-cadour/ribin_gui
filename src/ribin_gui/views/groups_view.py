@@ -21,7 +21,7 @@ def render():
         st.warning("Importez d'abord un fichier valide")
         return
     specialites = moulinette.specialites
-    separateurs = calculer_separateurs(len(specialites), 5)
+    separateurs = calculer_separateurs(len(specialites), 3)
     seuil = GroupsController.get_seuil_effectif()
 
     cols = st.columns(len(separateurs))
