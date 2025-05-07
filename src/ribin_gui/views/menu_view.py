@@ -4,8 +4,7 @@ import streamlit as st
 import pandas as pd
 from ..controllers.main_controller import MainController
 from ..controllers.menus_controller import MenusController
-from ..controllers.menu_controller import MenuController
-from ..views.menus_view import display_menu, display_conflits
+from ..views.menus_view import display_menu, display_conflits_insolubles
 from ..utils import get_icon, get_label
 
 def render():
@@ -21,9 +20,9 @@ def render():
         st.warning("Importez d'abord un fichier valide")
         return
     else:
-        display_menu(selected_menu)
+        display_conflits_insolubles(selected_menu)
         _, potentiels = selected_menu.conflicts(MainController.get_moulinette())
-        display_conflits(potentiels, title="Conflits potentiels")
+        display_conflits(potentiels)
 
 def display_group_moves():
     """Affiche les suggestions de déplacement de groupes"""

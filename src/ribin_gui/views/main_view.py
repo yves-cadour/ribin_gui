@@ -30,4 +30,5 @@ def render():
     elif etape == 3:
         menus_view.render()
     elif etape == 4:
-        menu_view.render()
+        pass
+        #menu_view.render()

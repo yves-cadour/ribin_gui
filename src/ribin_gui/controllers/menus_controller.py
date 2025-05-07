@@ -58,9 +58,7 @@ class MenusController:
         :return:Le menu
         :rtype: _IMenu
         """
-        #print("menus_controller > get_menu")
         current_menu = AppState.get('menus')[AppState.get('current_menu_index')]
-        #print(f"current_menu : {current_menu}")
         return current_menu
 
     @staticmethod
@@ -94,12 +92,8 @@ class MenusController:
         :return: le nouveau menu
         :rtype: _IMenu
         """
-        print(f"---menus_controller > deplacer_groupe---(groupe:{groupe}, barrette_number:{barrette_number})")
         menu = MenusController.get_menu()
-        print(f"menu:{menu}")
         barrette_destination = menu.get_barrette_with_number(barrette_number)
-        print(f"barrette_destination : {barrette_destination}")
         menu = menu.with_move_groupe_to_barrette(groupe, barrette_destination)
-        print(f"menu:{menu}")
         MenusController.update_menu(menu)
         return menu

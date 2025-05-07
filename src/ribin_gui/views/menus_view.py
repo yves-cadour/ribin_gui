@@ -17,25 +17,19 @@ def render():
     label, icon = get_label(etape), get_icon(etape)
     st.title(f"{icon} {label} ({etape}/{nb_etapes})")
 
-    # Ajout des boutons de navigation entre menus
     menus = MainController.get_menus()
     if menus:
-        display_menu_navigation()
         current_menu = menus[MenusController.current_menu_index()]
+        display_menu_navigation()
         display_menu(current_menu)
-        col1, col2 = st.columns(2, gap='small')
+        insolubles, potentiels = current_menu.conflicts(MainController.get_moulinette())
+        col1, col2 = st.columns([1,2], gap='small')
         with col1:
-            # Affichage des conflits
-            current_menu = menus[MenusController.current_menu_index()]
-            insolubles, potentiels = current_menu.conflicts(MainController.get_moulinette())
-            st.subheader("Conflits par concomitance")
-            tab1, tab2 = st.tabs(["Conflits insolubles", "Conflits potentiels"])
-            with tab1:
-                display_conflits(insolubles)
-            with tab2:
-                display_conflits(potentiels)
+            # Affichage des conflits insolubles
+            display_conflits_insolubles(insolubles)
         with col2:
-            st.subheader("Transferts possibles")
+            # Affichage des conflits potentiels sous forme de tableau
+            display_conflits_potentiels(potentiels)
     elif menus is None:
         st.info("Générez les menus en cliquant sur le bouton dans la partie gauche.")
 
@@ -79,7 +73,6 @@ def display_menu(menu):
     menu_index = MenusController.current_menu_index()
     menus = MainController.get_menus()
     st.subheader(f"Menu {menu_index + 1}/{len(menus)}")
-    print(menu)
     # Affichage des barrettes
     barrettes = menu.barrettes
     cols = st.columns(len(barrettes), gap="small", border=True)
@@ -123,11 +116,12 @@ def display_menu(menu):
                         </div>
                         """, unsafe_allow_html=True)
 
-
-
-def display_conflits(groupes_eleves):
+def display_conflits_insolubles(groupes_eleves):
+    nombre_eleves = sum([len(eleves) for eleves in groupes_eleves.values()])
     moulinette = MainController.get_moulinette()
     current_menu = MainController.get_menus()[MenusController.current_menu_index()]
+    st.subheader(f"Conflits insolubles : {nombre_eleves} élèves")
+
     if not groupes_eleves:
         st.info("Aucun conflit détecté")
         return
@@ -167,3 +161,86 @@ def display_conflits(groupes_eleves):
                     "Groupes": st.column_config.TextColumn(width="large")
                 }
             )
+
+def display_conflits_potentiels(conflits):
+    """
+    Affiche les conflits potentiels sous forme de tableau avec statut et substitutions.
+
+    Args:
+        conflits: Dictionnaire retourné par check_conflits_potentiels()
+                 Format: {frozenset(groupes): {"statut": "...", "substitutions": [...]}}
+    """
+    if not conflits:
+        st.info("Aucun conflit potentiel détecté")
+        return
+
+    nombre_eleves_total = sum([len(eleves) for eleves in conflits.values()])
+    current_menu = MainController.get_menus()[MenusController.current_menu_index()]
+    conflits = current_menu.check_conflits_potentiels(conflits)
+
+    st.subheader(f"Conflits potentiels : {nombre_eleves_total} élèves")
+    data = []
+
+    for groupes, infos in conflits.items():
+        # 1. Obtenir les groupes réellement en conflit (même barrette)
+        concomitances = current_menu.get_concomitances_for_groupes(groupes)
+        groupes_en_conflit = set()
+        for groupes_conflits, _ in concomitances.items():
+            groupes_en_conflit.update(groupes_conflits)
+
+        # 2. Séparer les groupes en conflit avec/sans équivalents
+        conflit_avec_equivalents = []
+        conflit_sans_equivalents = []
+        autres_groupes = []
+
+        for g in groupes:
+            if g in groupes_en_conflit:
+                # Utilisation de get_groupes_equivalents() pour vérifier les alternatives
+                if g.specialite.get_groupes_equivalents(g):
+                    conflit_avec_equivalents.append(g)
+                else:
+                    conflit_sans_equivalents.append(g)
+            else:
+                autres_groupes.append(g)
+
+
+        # 3. Préparer l'affichage avec parenthèses
+        labels_conflit = [f"{g.specialite.icon} {g.label}" for g in conflit_avec_equivalents + conflit_sans_equivalents]
+        labels_autres = [f"{g.specialite.icon} {g.label}" for g in autres_groupes]
+
+        # 4. Construction du texte final
+        parts = []
+        if labels_conflit:
+            parts.append(f"({'⚡'.join(labels_conflit)})")
+        if labels_autres:
+            parts.extend(labels_autres)
+
+        groupes_text = " + ".join(parts)
+        nombre_eleves = len(infos["eleves"])
+        nombre_eleves_text = f"{nombre_eleves} élèves" if nombre_eleves > 1 else f"{nombre_eleves} élève"
+
+        # 5. Icône de statut et substitutions
+        statut_icon = "✅" if infos["statut"] == "résolu" else "❌"
+        subs_text = ", ".join(infos["substitutions"]) if infos["substitutions"] else "-"
+
+        data.append({
+            "Groupes en conflit": groupes_text,
+            "Nombre d'élèves": nombre_eleves_text,
+            "Statut": statut_icon,
+            "Substitutions": subs_text
+        })
+
+    # Configuration et affichage du tableau
+    column_config = {
+        "Groupes en conflit": st.column_config.TextColumn("Groupes concernés", width="large"),
+        "Nombre d'élèves": st.column_config.TextColumn("Nombre d'élèves concernés", width="large"),
+        "Statut": st.column_config.TextColumn("Résolution", width="small", help="✅ = résolu, ❌ = irrésolu"),
+        "Substitutions": st.column_config.TextColumn("Substitutions appliquées", width="medium")
+    }
+
+    st.dataframe(
+        pd.DataFrame(data),
+        hide_index=True,
+        use_container_width=True,
+        column_config=column_config
+    )

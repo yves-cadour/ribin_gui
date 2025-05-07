@@ -46,7 +46,6 @@ def sidebar_navigation():
     if etape > 1 and col1.button(**button_args):
         MainController.decrementer_etape()
         st.rerun()
-    #print(f"moulinette={moulinette}")
     button_args = {
         'label': "Suivant →",
         'key': 'next',
@@ -91,7 +90,6 @@ def sidebar_upload():
                                      key ="file_uploader")
     if uploaded_file and uploaded_file.getvalue() != SidebarController.get_uploaded_file():
         if SidebarController.update_uploaded_file(uploaded_file, uploaded_file.getvalue()):
-            #print('changement')
             st.success("Fichier importé avec succès !")
             st.rerun() #sinon, pas de bouton suivant :-(
 
